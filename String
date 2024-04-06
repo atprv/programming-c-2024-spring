@@ -1,0 +1,169 @@
+//1
+#include <iostream>
+#include <string>
+using namespace std;
+
+bool is_it_IP(string s)
+{
+	int count = 0, n;
+	string number;
+	int prev_dot = 0, dot = 0;
+
+	while ((dot != string::npos) && (prev_dot < s.size()))
+	{
+		dot = s.find('.', prev_dot);
+
+		if ((prev_dot - dot) == 0)
+			break;
+
+		number = s.substr(prev_dot, dot - prev_dot);
+		n = stoi(number);
+
+		if ((n < 0) && (n > 255))
+			break;
+		else
+			count++;
+
+		prev_dot= dot + 1;
+	}
+
+	if ((count == 4) && (prev_dot < s.size()))
+		return true;
+	else
+		return false;
+
+}
+
+int main()
+{
+	string s;
+	getline(cin, s);
+	cout << boolalpha << is_it_IP(s);
+}
+
+
+
+//2
+#include <iostream>
+#include <string>
+using namespace std;
+
+string change_string(string s, string s_new)
+{
+	int i = 0, prev_i = 0;
+	int substr_size = s_new.size();
+
+	while ((i != string::npos) && (prev_i < s.size()))
+	{
+		i = s.find(s_new, prev_i);
+
+		if (i == string::npos)
+			break;
+
+		s.insert(i, "(");
+		s.insert(i + substr_size + 1, ")");
+
+		prev_i = i + substr_size + 2;
+	}
+
+	return s;
+}
+
+int main()
+{
+	string s, s_new;
+	getline(cin, s); getline(cin, s_new);
+
+	cout << change_string(s, s_new);
+}
+
+
+
+//3
+#include <iostream>
+#include <string>
+using namespace std;
+
+string summation(string s)
+{
+	int number;
+	int sign = 0;
+	int n1, n2;
+
+	while (s.find('+', sign) != -1)
+	{
+		sign = s.find('+', sign);
+
+		n1 = sign;
+		n2 = sign;
+
+		while ((n1 > 0) && (isdigit(s[n1-1])))
+			n1--;
+
+		while ((n2 < s.size()) && (isdigit(s[n2 + 1])))
+			n2++;
+
+		if ((n1 == sign) || (n2 == sign))
+			sign++;
+		else
+		{
+			number = stoi(s.substr(n1, sign - n1)) + stoi(s.substr(sign + 1, n2 - sign));
+			s.erase(n1, n2 - n1 + 1);
+			s.insert(n1, to_string(number));
+			sign = n1 + to_string(number).size();
+		}
+	}
+
+	return s;
+}
+
+int main()
+{
+	string s;
+	getline(cin, s);
+	cout << summation(s);
+}
+
+
+
+//4а
+#include <iostream>
+#include <string>
+using namespace std;
+
+string reduction(string s)
+{
+	string res;
+	
+	int left = s.find_first_of('{'), right = s.find_last_of('}');
+	int comma = left;
+
+	string left_part = s.substr(0, left);
+	string right_part = s.substr(right + 1);
+
+	while (comma != right)
+	{
+		comma++;
+
+		if (s.find(',', comma) != -1)
+			comma = s.find(',', comma);
+		else
+			comma = right;
+
+		if (!res.empty())
+			res += ',';
+
+		res = res + left_part + s.substr(left + 1, comma - left - 1) + right_part;
+
+		left = comma;
+	}
+
+	return res;
+}
+
+int main()
+{
+	string s;
+	getline(cin, s);
+	cout << reduction(s);
+}
