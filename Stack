@@ -1,0 +1,153 @@
+//1
+#include <iostream>
+#include <algorithm>
+#define MAX_SIZE 10
+using namespace std;
+
+class Stack
+{
+	int stack_size;				//макс. кол-во эл-тов в стеке
+	int stack_data[MAX_SIZE];				//данные стека
+
+public:
+	Stack() : stack_size(-1) {}
+
+	void push(int element)
+	{
+		if (stack_size >= MAX_SIZE - 1)
+			cout << "Stack is full!" << endl;
+		else 
+			stack_data[++stack_size] = element;
+	}
+
+	bool is_empty()
+	{
+		return (stack_size == (-1));
+	}
+
+	auto pop()
+	{
+		if (stack_size == (-1))
+		{
+			cout << "Stack is empty!" << endl;
+		}
+		else
+			return stack_data[stack_size--];
+
+	}
+
+};
+
+int main()
+{
+	Stack stack;
+	cout << boolalpha << stack.is_empty() << endl;
+	stack.push(1);
+	cout << boolalpha << stack.is_empty() << endl;
+	stack.push(2);
+	cout << stack.pop() << endl;
+	cout << stack.pop() << endl;
+	cout << boolalpha << stack.is_empty() << endl;
+	stack.push(3);
+	stack.push(4);
+	cout << stack.pop() << endl;
+	stack.push(5);
+	cout << stack.pop() << endl;
+	cout << stack.pop() << endl;
+	cout << stack.pop() << endl;
+
+	return 0;
+}
+
+
+
+//2
+#include <iostream>
+#define MAX_SIZE 10
+using namespace std;
+
+struct Node
+{
+	int d;				//элемент данных
+	Node* n;				//указатель на следующий узел
+
+	Node(int d) : d(d), n(nullptr) {};				//чтобы добавлять элементы в стек
+};
+
+class Stack
+{
+	Node* top;				//самый верхний узел стека
+	size_t max_size;
+	size_t stack_size;
+
+public:
+	Stack(size_t max_size) : top(nullptr), max_size(max_size), stack_size(0) {}
+
+	void push(int element)
+	{
+		if (stack_size >= max_size)
+			cout << "Stack is full!" << endl;
+		else
+		{
+			Node* new_node = new Node(element);
+			new_node->n = top;
+			top = new_node;
+			stack_size++;
+		}
+	}
+
+	bool is_empyt()
+	{
+		return (top == nullptr);
+	}
+
+	auto pop()
+	{
+		if (top == nullptr)
+		{
+			cout << "Stack is empty!" << endl;
+		}
+		else
+		{
+			Node* temp = top;
+			int element = temp->d;
+			top = top->n;
+			delete temp;
+			stack_size--;
+			return element;
+		}
+
+	}
+
+	~Stack()
+	{
+		while (top != nullptr)
+		{
+			Node* temp = top;
+			top = top->n;
+			delete temp;
+		}
+	}
+
+};
+
+int main()
+{
+	Stack stack(5);
+	cout << boolalpha << stack.is_empyt() << endl;
+	stack.push(1);
+	cout << boolalpha << stack.is_empyt() << endl;
+	stack.push(2);
+	cout << stack.pop() << endl;
+	cout << stack.pop() << endl;
+	cout << boolalpha << stack.is_empyt() << endl;
+	stack.push(3);
+	stack.push(4);
+	cout << stack.pop() << endl;
+	stack.push(5);
+	cout << stack.pop() << endl;
+	cout << stack.pop() << endl;
+	cout << stack.pop() << endl;
+
+	return 0;
+}
