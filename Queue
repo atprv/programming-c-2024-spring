@@ -1,0 +1,181 @@
+//1
+#include <iostream>
+#include <algorithm>
+#define MAX_SIZE 10
+using namespace std;
+
+class Queue
+{
+	int queue_size;
+	int queue_data[MAX_SIZE];
+	int queue_begin = 0, queue_end = 0;
+
+public:
+	Queue() : queue_size(-1) {}
+
+	void push(int element)
+	{
+		if (queue_size+1 == MAX_SIZE)
+			cout << "Queue is full!" << endl;
+		else
+		{
+			queue_data[queue_end] = element;
+			queue_size++;
+			queue_end = (queue_end+1)%MAX_SIZE;
+		}
+			
+	}
+
+	bool empty()
+	{
+		return (queue_size == (-1));
+	}
+
+	auto pop()
+	{
+		if (queue_size == (-1))
+			cout << "Queue is empty!" << endl;
+		else
+		{
+			int res = queue_data[queue_begin];
+			queue_size--;
+			queue_begin = (queue_begin+1)%MAX_SIZE;
+
+			return res;
+		}
+	}
+};
+
+int main()
+{
+	Queue queue;
+	cout << boolalpha << queue.empty() << endl;
+	queue.push(1);
+	cout << boolalpha << queue.empty() << endl;
+	queue.push(2);
+	cout << queue.pop() << endl;
+	cout << queue.pop() << endl;
+	cout << boolalpha << queue.empty() << endl;
+	queue.push(3);
+	queue.push(4);
+	cout << queue.pop() << endl;
+	queue.push(5);
+	cout << queue.pop() << endl;
+	cout << queue.pop() << endl;
+	cout << queue.pop() << endl;
+	queue.push(6);
+	queue.push(7);
+	queue.push(8);
+	queue.push(9);
+	queue.push(10);
+	queue.push(11);
+	queue.push(12);
+	queue.push(13);
+	queue.push(14);
+	queue.push(15);
+	queue.push(16);
+	cout << queue.pop() << endl;
+
+	return 0;
+}
+
+
+
+//2
+#include <iostream>
+#include <algorithm>
+using namespace std;
+
+struct Node
+{
+	int d;				//элемент данных
+	Node* n;			//указатель на следующий элемент
+
+	Node(int d) : d(d), n(nullptr) {};
+};
+
+struct Queue
+{
+	Node* end;
+	size_t max_size, queue_size;
+
+public:
+	Queue(size_t max_size) : end(nullptr), max_size(max_size), queue_size(0) {}
+
+	void push(int element)
+	{
+		if (queue_size == max_size)
+			cout << "Queue is full!" << endl;
+
+		else if (queue_size == 0)
+		{
+			end = new Node(element);
+			queue_size++;
+		}
+
+		else
+		{
+			Node* new_node = new Node(element);
+			new_node->n = end;
+			end = new_node;
+			queue_size++;
+		}
+	}
+
+	bool empty()
+	{
+		return (queue_size == 0);
+	}
+
+	auto pop()
+	{
+		if (empty())
+			cout << "Queue is empty!" << endl;
+		else
+		{
+			Node* temp = end;
+
+			for (int i = 0; i < queue_size-1; ++i)
+				temp = temp->n;
+
+			int res = temp->d;
+			delete temp;
+			queue_size--;
+
+			return res;
+		}
+	}
+
+	~Queue()
+	{
+		while (!empty())
+			pop();
+	}
+
+};
+
+int main()
+{
+	Queue queue(5);
+	queue.push(1);
+	cout << queue.pop() << endl;
+	queue.push(2);
+	queue.push(3);
+	queue.push(4);
+	cout << queue.pop() << endl;
+	queue.push(5);
+	queue.push(6);
+	cout << queue.pop() << endl;
+	queue.push(7);
+	queue.push(8);
+	queue.push(9);
+	queue.push(10);
+	cout << queue.pop() << endl;
+	cout << queue.pop() << endl;
+	cout << queue.pop() << endl;
+	cout << queue.pop() << endl;
+	cout << queue.pop() << endl;
+	cout << queue.pop() << endl;
+
+	return 0;
+}
