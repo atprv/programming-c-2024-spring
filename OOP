@@ -1,0 +1,565 @@
+//1
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <iterator>
+using namespace std;
+
+class Polynomial
+{
+public:
+
+	int degree;						//степень многочлена
+	vector<double> coefficients;			//коэффициенты многочлена (a0, a1, a2), при ai iая степень
+
+	Polynomial() : degree(0), coefficients(0) {}				//пункт 1
+	Polynomial(int deg, vector<double> cf) : degree(deg), coefficients(cf) {}			//пункт 2
+
+	double &coef(int n);				//пункт 3
+	double value(double n);				//пункт 4
+
+	~Polynomial() {}			//пункт 5	
+};
+
+double &Polynomial::coef(int n)
+{
+	return coefficients[n];
+}
+
+double Polynomial::value(double n)
+{
+	double res = 0, num = 1;
+
+	for (double a : coefficients)
+	{
+		res += a * num;
+		num *= n;
+	}
+
+	return res;
+}
+
+Polynomial operator+ (Polynomial p, Polynomial q)				//сложение
+{
+	vector<double> new_coef;
+	int min_deg = min(p.degree, q.degree);
+
+	for (int i = 0; i <= min_deg; i++)
+		new_coef.push_back(p.coefficients[i] + q.coefficients[i]);
+
+	int deg_of_p = min_deg + 1;
+	while (p.degree >= deg_of_p)
+	{
+		new_coef.push_back(p.coefficients[deg_of_p]);
+		deg_of_p++;
+	}
+
+	int deg_of_q = min_deg + 1;
+	while (q.degree >= deg_of_q)
+	{
+		new_coef.push_back(q.coefficients[deg_of_q]);
+		deg_of_q++;
+	}
+
+	while (!new_coef.back())
+		new_coef.pop_back();
+
+	return Polynomial(new_coef.size() - 1, new_coef);
+}
+
+Polynomial operator- (Polynomial p, Polynomial q)
+{
+	vector<double> new_coef;
+	int min_deg = min(p.degree, q.degree);
+
+	for (int i = 0; i <= min_deg; i++)
+		new_coef.push_back(p.coefficients[i] - q.coefficients[i]);
+
+	int deg_of_p = min_deg + 1;
+	while (p.degree >= deg_of_p)
+	{
+		new_coef.push_back(p.coefficients[deg_of_p]);
+		deg_of_p++;
+	}
+
+	int deg_of_q = min_deg + 1;
+	while (q.degree >= deg_of_q)
+	{
+		new_coef.push_back(-q.coefficients[deg_of_q]);
+		deg_of_q++;
+	}
+
+	while (!new_coef.back())
+		new_coef.pop_back();
+
+	return Polynomial(new_coef.size() - 1, new_coef);
+}
+
+Polynomial operator* (Polynomial p, Polynomial q)
+{
+	vector<double> new_coef;
+	new_coef.resize(p.degree + q.degree + 1, 0);
+
+	for (int i = 0; i <= p.degree; i++)
+	{
+		if (p.coefficients[i])
+		{
+			for (int j = 0; j <= q.degree; j++)
+			{
+				if (q.coefficients[j])
+					new_coef[i + j] += p.coefficients[i] * q.coefficients[j];
+			}
+		}
+	}
+
+	while (!new_coef.back())
+		new_coef.pop_back();
+
+	return Polynomial(new_coef.size() - 1, new_coef);
+}
+
+ostream& operator << (ostream& st, Polynomial p)
+{
+	st << "Degree: " << p.degree << " Coefficients: ";
+
+	for (double a : p.coefficients)
+		st << a << ' ';
+
+	return st << '\n';
+}
+
+istream& operator >> (istream& st, Polynomial& p)
+{
+
+	st >> p.degree;
+
+	p.coefficients.resize(p.degree + 1);
+
+	for (int i = 0; i <= p.degree; i++)
+		st >> p.coef(i);
+
+	return st;
+}
+
+int main()
+{
+	Polynomial p;			//p(3, { 3.4, 5.5, 2.1, 6.5 })
+	Polynomial q;			//q(4, { 1.6, 5.5, 5.9, 0, 5 })
+
+	cin >> p >> q;
+	cout << p << '\n' << q;
+
+	cout << "\nDegree coefficient: " << p.coef(2) << "\nPoint value: " << p.value(3.4) << '\n';			//вывод соответствующего коэф и значения в точке
+
+	Polynomial sum_of_pol = p + q;
+
+	cout << "\nResult of sum: \n" << sum_of_pol;				//вывод суммы многочленов
+
+	Polynomial diff_of_pol = p - q;
+	cout << "\nResult of diff: \n" << diff_of_pol;				//вывод разности многочленов
+
+	Polynomial pr_of_pol = p * q;
+	cout << "\nResult of product: \n" << pr_of_pol;				//вывод разности многочленов
+
+	return 0;
+}
+
+
+
+//2
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <initializer_list>
+using namespace std;
+
+class Polynomial
+{
+public:
+
+	int degree;						//степень многочлена
+	vector<double> coefficients;			//коэффициенты многочлена (a0, a1, a2), при ai iая степень
+
+	Polynomial() : degree(0), coefficients(0) {}				//пункт 1
+	Polynomial(int deg, vector<double> cf) : degree(deg), coefficients(cf) {}			//пункт 2
+	
+	Polynomial(double c) : degree(0), coefficients({ c }) {}			//конструктор преобразования
+	Polynomial(const initializer_list<double> & pol) : degree(pol.size()-1), coefficients(pol) {}			//конструктор по списку инициализации
+
+	double value(double n);				//пункт 4
+
+	Polynomial(const Polynomial& p)				//конструктор копирования
+	{
+		degree = p.degree;
+		coefficients = p.coefficients;
+	}
+	
+	Polynomial& operator = (Polynomial& p)			//операция присваивания
+	{
+		if (this->coefficients == p.coefficients)
+			return *this;
+
+		this->coefficients.clear();
+		this->degree = p.degree;
+
+		for (int i = 0; i <= this->degree; i++)
+			this->coefficients.push_back(p[i]);
+
+		return *this;
+	}
+	
+	double& operator [] (int i)				//операция индексации
+	{
+		static double cc = -1;
+
+		if (i >= 0 && i <= degree)
+			return coefficients[i];
+		else
+		{
+			cout << "Error" << endl;
+			return cc;
+		}
+	}
+
+	~Polynomial() {}			//пункт 5
+};
+
+double Polynomial::value(double n)
+{
+	double res = 0, num = 1;
+
+	for (double a : coefficients)
+	{
+		res += a * num;
+		num *= n;
+	}
+
+	return res;
+}
+
+Polynomial operator+ (Polynomial p, Polynomial q)				//сложение
+{
+	vector<double> new_coef;
+	int min_deg = min(p.degree, q.degree);
+
+	for (int i = 0; i <= min_deg; i++)
+		new_coef.push_back(p.coefficients[i] + q.coefficients[i]);
+
+	int deg_of_p = min_deg + 1;
+	while (p.degree >= deg_of_p)
+	{
+		new_coef.push_back(p.coefficients[deg_of_p]);
+		deg_of_p++;
+	}
+
+	int deg_of_q = min_deg + 1;
+	while (q.degree >= deg_of_q)
+	{
+		new_coef.push_back(q.coefficients[deg_of_q]);
+		deg_of_q++;
+	}
+
+	while (!new_coef.back())
+		new_coef.pop_back();
+
+	return Polynomial(new_coef.size() - 1, new_coef);
+}
+
+Polynomial operator- (Polynomial p, Polynomial q)
+{
+	vector<double> new_coef;
+	int min_deg = min(p.degree, q.degree);
+
+	for (int i = 0; i <= min_deg; i++)
+		new_coef.push_back(p.coefficients[i] - q.coefficients[i]);
+
+	int deg_of_p = min_deg + 1;
+	while (p.degree >= deg_of_p)
+	{
+		new_coef.push_back(p.coefficients[deg_of_p]);
+		deg_of_p++;
+	}
+
+	int deg_of_q = min_deg + 1;
+	while (q.degree >= deg_of_q)
+	{
+		new_coef.push_back(-q.coefficients[deg_of_q]);
+		deg_of_q++;
+	}
+
+	while (!new_coef.back())
+		new_coef.pop_back();
+
+	return Polynomial(new_coef.size() - 1, new_coef);
+}
+
+Polynomial operator* (Polynomial p, Polynomial q)
+{
+	vector<double> new_coef;
+	new_coef.resize(p.degree + q.degree + 1, 0);
+
+	for (int i = 0; i <= p.degree; i++)
+	{
+		if (p.coefficients[i])
+		{
+			for (int j = 0; j <= q.degree; j++)
+			{
+				if (q.coefficients[j])
+					new_coef[i + j] += p.coefficients[i] * q.coefficients[j];
+			}
+		}
+	}
+
+	while (!new_coef.back())
+		new_coef.pop_back();
+
+	return Polynomial(new_coef.size() - 1, new_coef);
+}
+
+ostream& operator << (ostream& st, Polynomial p)
+{
+	st << "Degree: " << p.degree << " Coefficients: ";
+
+	for (double a : p.coefficients)
+		st << a << ' ';
+
+	return st << '\n';
+}
+
+istream& operator >> (istream& st, Polynomial& p)
+{
+	st >> p.degree;
+
+	p.coefficients.resize(p.degree + 1);
+
+	for (int i = 0; i <= p.degree; i++)
+		st >> p[i];
+
+	return st;
+}
+
+int main()
+{
+	Polynomial p(3, { 3.4, 5.5, 2.1, 6.5 });			//p(3, { 3.4, 5.5, 2.1, 6.5 })
+	Polynomial q(4, { 1.6, 5.5, 5.9, 0, 5 });			//q(4, { 1.6, 5.5, 5.9, 0, 5 })
+
+	cout << p << '\n' << q;
+
+	cout << "\nDegree coefficient: " << p[2] << "\nPoint value: " << p.value(3.4) << '\n';			//вывод соответствующего коэф и значения в точке
+
+	Polynomial sum_of_pol = p + q;
+
+	cout << "\nResult of sum: \n" << sum_of_pol;				//вывод суммы многочленов
+
+	Polynomial diff_of_pol = p - q;
+	cout << "\nResult of diff: \n" << diff_of_pol;				//вывод разности многочленов
+
+	Polynomial pr_of_pol = p * q;
+	cout << "\nResult of product: \n" << pr_of_pol;				//вывод разности многочленов
+
+	Polynomial q_copy;
+	q_copy = q;
+	cout << "\nResult of copying: \n" << q_copy;
+	
+	Polynomial num = { 3 };
+	cout << "\nResult of conversion: \n" << num;
+
+	Polynomial t{ 1.1, 2.2, 3.3, 4.4, 5.5 };
+	cout << "\nResult of  initializer list: \n" << t;
+
+	p = q;
+	cout << "\nResult of assignment: \n" << p;
+	return 0;
+}
+
+
+
+//3
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <initializer_list>
+using namespace std;
+
+class Polynomial
+{
+public:
+
+	int degree;						//степень многочлена
+	vector<double> coefficients;			//коэффициенты многочлена (a0, a1, a2), при ai iая степень
+
+	Polynomial() : degree(0), coefficients(0) {}				//пункт 1
+	Polynomial(int deg, vector<double> cf) : degree(deg), coefficients(cf) {}			//пункт 2
+	
+	Polynomial(double c) : degree(0), coefficients({ c }) {}			//конструктор преобразования
+	Polynomial(const initializer_list<double> & pol) : degree(pol.size()-1), coefficients(pol) {}			//конструктор по списку инициализации
+
+	double operator() (const double n) const				//операцию вызова функции
+	{
+		double res = 0, num = 1;
+
+		for (double a : coefficients)
+		{
+			res += a * num;
+			num *= n;
+		}
+
+		return res;
+	}
+
+	Polynomial(const Polynomial& p)			//конструктор копирования
+	{
+		degree = p.degree;
+		coefficients = p.coefficients;
+	}
+	
+	Polynomial& operator = (Polynomial&& p)		//операция присваивания
+	{
+		degree = p.degree;
+		swap(coefficients, p.coefficients);
+
+		return *this;
+	}
+	
+	double& operator [] (int i)		//операция индексации
+	{
+		static double cc = -1;
+
+		if (i >= 0 && i <= degree)
+			return coefficients[i];
+		else
+		{
+			cout << "Error" << endl;
+			return cc;
+		}
+	}
+
+	Polynomial (Polynomial&& p) : degree(p.degree), coefficients(p.coefficients)				//констркутор перемещения
+	{
+		p.degree = 0;
+		p.coefficients = {0};
+	}
+
+	~Polynomial() {}			//пункт 5
+};
+
+Polynomial operator+ (Polynomial p, Polynomial q)				//сложение
+{
+	vector<double> new_coef;
+	int min_deg = min(p.degree, q.degree);
+
+	for (int i = 0; i <= min_deg; i++)
+		new_coef.push_back(p.coefficients[i] + q.coefficients[i]);
+
+	int deg_of_p = min_deg + 1;
+	while (p.degree >= deg_of_p)
+	{
+		new_coef.push_back(p.coefficients[deg_of_p]);
+		deg_of_p++;
+	}
+
+	int deg_of_q = min_deg + 1;
+	while (q.degree >= deg_of_q)
+	{
+		new_coef.push_back(q.coefficients[deg_of_q]);
+		deg_of_q++;
+	}
+
+	while (!new_coef.back())
+		new_coef.pop_back();
+
+	return move(Polynomial(new_coef.size() - 1, new_coef));
+}
+
+Polynomial operator- (Polynomial p, Polynomial q)
+{
+	vector<double> new_coef;
+	int min_deg = min(p.degree, q.degree);
+
+	for (int i = 0; i <= min_deg; i++)
+		new_coef.push_back(p.coefficients[i] - q.coefficients[i]);
+
+	int deg_of_p = min_deg + 1;
+	while (p.degree >= deg_of_p)
+	{
+		new_coef.push_back(p.coefficients[deg_of_p]);
+		deg_of_p++;
+	}
+
+	int deg_of_q = min_deg + 1;
+	while (q.degree >= deg_of_q)
+	{
+		new_coef.push_back(-q.coefficients[deg_of_q]);
+		deg_of_q++;
+	}
+
+	while (!new_coef.back())
+		new_coef.pop_back();
+
+	return Polynomial(new_coef.size() - 1, new_coef);
+}
+
+Polynomial operator* (Polynomial p, Polynomial q)
+{
+	vector<double> new_coef;
+	new_coef.resize(p.degree + q.degree + 1, 0);
+
+	for (int i = 0; i <= p.degree; i++)
+	{
+		if (p.coefficients[i])
+		{
+			for (int j = 0; j <= q.degree; j++)
+			{
+				if (q.coefficients[j])
+					new_coef[i + j] += p.coefficients[i] * q.coefficients[j];
+			}
+		}
+	}
+
+	while (!new_coef.back())
+		new_coef.pop_back();
+
+	return Polynomial(new_coef.size() - 1, new_coef);
+}
+
+ostream& operator << (ostream& st, Polynomial p)
+{
+	st << "Degree: " << p.degree << " Coefficients: ";
+
+	for (double a : p.coefficients)
+		st << a << ' ';
+
+	return st << '\n';
+}
+
+istream& operator >> (istream& st, Polynomial& p)
+{
+	st >> p.degree;
+
+	p.coefficients.resize(p.degree + 1);
+
+	for (int i = 0; i <= p.degree; i++)
+		st >> p[i];
+
+	return st;
+}
+
+int main()
+{
+	Polynomial p(3, { 3.4, 5.5, 2.1, 6.5 });			//p(3, { 3.4, 5.5, 2.1, 6.5 })
+	Polynomial q(4, { 1.6, 5.5, 5.9, 0, 5 });			//q(4, { 1.6, 5.5, 5.9, 0, 5 })
+
+	cout << p << q << '\n';
+
+	Polynomial t;
+	t = p + q;
+	cout << t << '\n';
+
+	Polynomial sum_copy;
+	sum_copy = move(t);
+	cout << sum_copy << '\n';
+
+	cout << sum_copy(2) << '\n';			//вывод операции вызова функции
+
+	return 0;
+}
