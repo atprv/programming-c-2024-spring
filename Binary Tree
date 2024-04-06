@@ -1,0 +1,265 @@
+//1
+#include <iostream>
+using namespace std;
+
+struct Node
+{
+	int data;				
+	Node* left;
+	Node* right;
+
+	Node(int d, Node* l = nullptr, Node* r = nullptr) : data(d), left(l), right(r) {}
+};
+
+void f_print(Node* r, int indent = 0)
+{
+	if (r == nullptr) return;
+
+	f_print(r->right, indent + 3);
+
+	for (int i = 0; i < indent; ++i)
+		cout << ' ';
+	cout << r->data << endl;
+
+	f_print(r->left, indent + 3);
+}
+
+struct Tree
+{
+	Node* root;
+
+	Tree() : root(nullptr) {}
+	Tree(Node* p) : root(p) {}
+	Tree(int d, Node* l = nullptr, Node* r = nullptr) : root(new Node(d, l, r)) {}						//Tree(int d) : root(new Node(d)) {}
+
+	void print()			//вывод
+	{
+		f_print(root);
+	}
+
+	Node* fl_grandchild()			//поиск самого левого внука
+	{
+		Node* tmp;
+
+		if (this->root->left != nullptr)
+			tmp = this->root->left;
+		else
+			return nullptr;
+
+		if (tmp->left != nullptr)
+			return tmp->left;
+		else
+			return tmp->right;
+	}
+
+	void rotateLeft()			//левый поворот в корне
+	{
+		Node* tmp_root;
+
+		if (this->root->right != nullptr)
+		{
+			tmp_root = this->root->right;
+			this->root->right = tmp_root->left;
+			tmp_root->left = this->root;
+			this->root = tmp_root;
+		}
+			
+	}
+
+	Node* fl_node()				//поиск самого левого узла
+	{
+		int flag = 1;
+		Node* tmp = this->root;
+
+		while (tmp->left != nullptr)
+			tmp = tmp->left;
+
+		return tmp;
+	}
+
+	Node* fl_leaf()				//поиск самого левого листа
+	{
+		int flag = 1;
+		Node* tmp = this->root;
+
+		while (flag)
+		{
+			if (tmp->left == nullptr)
+			{
+				if (tmp->right == nullptr)
+				{
+					flag = 0;
+					break;
+				}
+				tmp = tmp->right;
+			}
+			else
+				tmp = tmp->left;
+		}
+
+		return tmp;
+	}
+
+	void del_lleaf()
+	{
+		int flag = 1;
+		Node* tmp = this->root;
+		Node* tmp_prev = this->root;
+
+		while (flag)
+		{
+			if (tmp->left == nullptr)
+			{
+				if (tmp->right == nullptr)
+				{
+					flag = 0;
+					break;
+				}
+
+				tmp_prev = tmp;
+				tmp = tmp->right;
+			}
+			else
+			{
+				tmp_prev = tmp;
+				tmp = tmp->left;
+			}
+		}
+
+		if (tmp_prev->left == tmp)
+			tmp_prev->left = nullptr;
+		else
+			tmp_prev->right = nullptr;
+
+	}
+};
+
+int main()
+{
+	Node* p7 = new Node(7);
+	Node* p6 = new Node(6);
+	Node* p5 = new Node(5);
+	Node* p3 = new Node(3, p6, p7);
+	Node* p2 = new Node(2, nullptr, p5);
+	Node* p1 = new Node(1, p2, p3);
+
+	Tree t(p1);
+	t.print();
+
+	Node* fl_gr = t.fl_grandchild();
+	t.rotateLeft();
+	cout << '\n';
+	t.print();
+
+	cout << t.fl_node()->data << '\n';
+	cout << t.fl_leaf()->data << '\n';
+
+	t.del_lleaf();
+	t.print();
+}
+
+
+
+//2
+#include <iostream>
+using namespace std;
+
+struct Node
+{
+	int data;
+	Node* father;
+	Node* left;
+	Node* right;
+
+	Node(int d, Node* f = nullptr, Node* l = nullptr, Node* r = nullptr) : data(d), father(f), left(l), right(r) {}
+};
+
+void f_print(Node* r, int indent = 0)
+{
+	if (r == nullptr) return;
+
+	f_print(r->right, indent + 3);
+
+	for (int i = 0; i < indent; ++i)
+		cout << ' ';
+	cout << r->data << endl;
+
+	f_print(r->left, indent + 3);
+}
+
+struct Tree
+{
+	Node* root;
+
+	Tree() : root(nullptr) {}
+	Tree(Node* p) : root(p) {}
+	Tree(int d, Node* f = nullptr, Node* l = nullptr, Node* r = nullptr) : root(new Node(d, f, l, r)) {}						//Tree(int d) : root(new Node(d)) {}
+
+	void print()			//вывод
+	{
+		f_print(root);
+	}
+
+	void rotateLeft()			//левый поворот в корне
+	{
+		Node* B, *y;
+
+		if (this->root->right != nullptr)
+		{
+			B = this->root->right;
+			B->father = nullptr;
+			
+			y = B->left;
+			this->root->right = y;
+			y->father = this->root;
+
+			this->root->father = B;
+			B->left = this->root;
+			this->root = B;
+		}
+	}
+
+	void del_node(Node *p)				//удаление узла
+	{
+		Node* tmp;
+
+		if (p->left != nullptr)
+			tmp = p->left;
+		else
+			tmp = p->right;
+
+		tmp->father = p->father;
+
+		if (p->father->left == p)
+			p->father->left = tmp;
+		else
+			p->father->right = tmp;
+
+	}
+};
+
+int main()
+{
+	Node* p1 = new Node(1);
+	Node* p2 = new Node(2, p1);
+	Node* p3 = new Node(3, p1);
+	p1->left = p2; p1->right = p3;
+	Node* p4 = new Node(4, p2);
+	Node* p5 = new Node(5, p2);
+	p2->left = p4; p2->right = p5;
+	Node* p6 = new Node(6, p3);
+	Node* p7 = new Node(7, p3);
+	p3->left = p6; p3->right = p7;
+	Node* p8 = new Node(8, p6);
+	p6->left = p8;
+	Tree t(p1);
+	t.print();
+
+	cout << '\n' << endl;
+	t.rotateLeft();
+	t.print();
+	
+	cout << '\n' << endl;
+	t.del_node(p6);
+	t.print();
+}
