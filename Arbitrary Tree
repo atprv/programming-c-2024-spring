@@ -1,0 +1,194 @@
+#include <iostream>
+#include <vector>
+using namespace std;
+
+struct Node
+{
+	int data;
+	Node* down;
+	Node* right;
+
+	Node(int dt, Node* d = nullptr, Node* r = nullptr) : data(dt), down(d), right(r) {}
+};
+
+void f_print(Node* p, int d = 0)
+{
+	if (p == nullptr) return;
+
+	for (int i = 0; i < d; i++)
+		cout << ' ';
+	cout << p->data << endl;
+
+	f_print(p->down, d + 3);
+	f_print(p->right, d);
+}
+
+int count(Node* p)
+{
+	int c = 0;
+
+	if (p == nullptr) return c;
+
+	p = p->down;
+	while (p != nullptr)
+	{
+		c++;
+		p = p->right;
+	}
+
+	return c;
+}
+
+struct Tree
+{
+	Node* root;
+
+	Tree() : root(nullptr) {}
+	Tree(Node* p) : root(p) {}
+	Tree(int dt, Node* d = nullptr, Node* r = nullptr) : root(new Node(dt, d, r)) {}
+
+	void print()
+	{
+		f_print(root);
+	}
+
+	void print_Node(Node* my_node)				//вывод для поиска сына и внука, а также для поиска с вектором
+	{
+		if (my_node != nullptr)
+			cout << "I have found! It is " << my_node->data << "." << endl;
+		else
+			cout << "Cannot find!" << endl;
+	}
+
+	int count_grandchild()			//число внуков корня
+	{
+		Node* p = this->root->down;
+		int res = 0;
+
+		while (p != nullptr)
+		{
+			res += count(p);
+			p = p->right;
+		}
+
+		return res;
+	}
+
+	Node* find_data(int d1, int d2)			//сын с данными d1, внук с данными d2 
+	{
+		Node* son = this->root->down;
+		Node* sons_son;
+
+		while (son != nullptr)
+		{
+			if (son->data != d1)
+			{
+				son = son->right;
+				continue;
+			}
+
+			sons_son = son->down;
+			while (sons_son != nullptr)
+			{
+				if (sons_son->data != d2)
+					sons_son = sons_son->right;
+				else
+					return son;
+			}
+
+			return nullptr;
+		}
+
+		return nullptr;
+	}
+
+	Node* cons_move(vector<int> movements)				//поиск с вектором
+	{
+		Node* pp = this->root; //present_place
+
+		for (auto m : movements)
+		{
+			if (pp->down != nullptr)
+				pp = pp->down;
+			else
+				return nullptr;
+
+			for (int i = 1; i < m; ++i)
+			{
+				if (pp->right != nullptr)
+					pp = pp->right;
+				else
+					return nullptr;
+			}
+		}
+
+		return pp;
+	}
+
+	void del_sons()				//удаление всех сыновей
+	{
+		Node *t, *t1 = root->down, *t1_right, *tmp = root, *t2;
+
+		while (t1 != nullptr)
+		{
+			t1_right = t1->right;
+			t2 = t1->down;
+			t = t2;
+
+			while (t->right != 0)
+				t = t->right;
+
+			if (tmp == root)
+				tmp->down = t2;
+			else 
+				tmp->right = t2;
+
+			tmp = t;
+			
+			delete t1;
+
+			t1 = t1_right;
+		}
+	}
+};
+
+int main()
+{
+	Node* p10 = new Node(10);
+	Node* p9 = new Node(9, nullptr, p10);
+	Node* p8 = new Node(8);
+	Node* p7 = new Node(7);
+	Node* p6 = new Node(6, nullptr, p7);
+	Node* p5 = new Node(5, nullptr, p6);
+	Node* p4 = new Node(4, p9);
+	Node* p3 = new Node(3, p8, p4);
+	Node* p2 = new Node(2, p5, p3);
+	Node* p1 = new Node(1, p2);
+
+	Tree t(p1);
+	t.print();
+	cout << '\n' << endl;
+
+	cout << "It has " << t.count_grandchild() << " grandchildren." << endl;
+
+	Node* res_find_data1 = t.find_data(2, 6);
+	t.print_Node(res_find_data1);
+	Node* res_find_data2 = t.find_data(3, 8);
+	t.print_Node(res_find_data2);
+	Node* res_find_data3 = t.find_data(4, 11);
+	t.print_Node(res_find_data3);
+	Node* res_find_data4 = t.find_data(5, 9);
+	t.print_Node(res_find_data4);
+
+	Node* res_cons_move1 = t.cons_move({ 1, 2 });
+	t.print_Node(res_cons_move1);
+	Node* res_cons_move2 = t.cons_move({ 1, 4 });
+	t.print_Node(res_cons_move2);
+	Node* res_cons_move3 = t.cons_move({ 3, 2 });
+	t.print_Node(res_cons_move3);
+	Node* res_cons_move4 = t.cons_move({ 4, 2 });
+	t.print_Node(res_cons_move4);
+
+	t.del_sons();
+	t.print();
+}
