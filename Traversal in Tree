@@ -138,11 +138,10 @@ Node* f_find(Node* p, T value)
 		return p;
 
 	Node* lres = f_find(p->left, value);
-	Node* rres = f_find(p->right, value);
-
 	if (lres != nullptr)
 		return lres;
 
+	Node* rres = f_find(p->right, value);
 	if (rres != nullptr)
 		return rres;
 
@@ -344,6 +343,4 @@ int main()
 
 	cout << "The mult if parent has 2 sons is " << t.mult() << "." << endl;
 	cout << "The min data is " << t.min() << "." << endl;*/
-
-
 }
