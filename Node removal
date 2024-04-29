@@ -1,0 +1,449 @@
+#include <iostream>
+using namespace std;
+
+struct Node
+{
+	int data;
+	Node* left;
+	Node* right;
+
+	Node(int d, Node* l = nullptr, Node* r = nullptr) : data(d), left(l), right(r) {}
+};
+
+void f_print(Node* r, int indent = 0)
+{
+	if (r == nullptr) return;
+
+	f_print(r->right, indent + 3);
+
+	for (int i = 0; i < indent; ++i)
+		cout << ' ';
+	cout << r->data << endl;
+
+	f_print(r->left, indent + 3);
+}
+
+void f_del(Node*& p)
+{
+	if (p == nullptr)
+		return;
+
+	f_del(p->left);
+	f_del(p->right);
+
+	delete p;
+	p = nullptr;
+}
+
+int f_count(Node* p)
+{
+	if (p == nullptr)
+		return 0;
+
+	return 1 + f_count(p->left) + f_count(p->right);
+}
+
+int f_sum(Node* p)
+{
+	if (p == nullptr)
+		return 0;
+
+	return p->data + f_sum(p->left) + f_sum(p->right);
+}
+
+int f_count_neg(Node* p)
+{
+	if (p == nullptr)
+		return 0;
+	if (p->data < 0)
+		return 1 + f_count_neg(p->left) + f_count_neg(p->right);
+
+	return f_count_neg(p->left) + f_count_neg(p->right);
+}
+
+int f_height(Node* p)
+{
+	int l, r, h = 0;
+	if (p == nullptr)
+		return 0;
+	else
+	{
+		l = f_height(p->left);
+		r = f_height(p->right);
+		h = (l > r ? l : r) + 1;
+	}
+}
+
+void f_reflect(Node* p)
+{
+	Node* tmp;
+
+	if (p->left != nullptr)
+		f_reflect(p->left);
+	if (p->right != nullptr)
+		f_reflect(p->right);
+
+	tmp = p->left;
+	p->left = p->right;
+	p->right = tmp;
+}
+
+int f_mult(Node* p)
+{
+	if ((p != nullptr) && (p->left != nullptr) && (p->right != nullptr))
+		return p->data * f_mult(p->left) * f_mult(p->right);
+	if (p == nullptr)
+		return 1;
+
+	return f_mult(p->left) * f_mult(p->right);
+}
+
+int f_min(Node* p)
+{
+	if (p == nullptr)
+		return INT_MAX;
+
+	int res = p->data;
+	int lres = f_min(p->left);
+	int rres = f_min(p->right);
+
+	if (lres < res)
+		res = lres;
+	if (rres < res)
+		res = rres;
+
+	return res;
+}
+
+int f_eval(Node* p)
+{
+	if (p == nullptr)
+		return 0;
+
+	if ((p->left == nullptr) && (p->right == nullptr))
+		return p->data;
+
+	int lev = f_eval(p->left);
+	int rev = f_eval(p->right);
+
+	switch (p->data)
+	{
+	case '+':
+		return lev + rev;
+	case '-':
+		return lev - rev;
+	case '*':
+		return lev * rev;
+	case '/':
+		if (rev != 0)
+			return lev / rev;
+	}
+}
+
+Node* f_find(Node* p, int value)
+{
+	if (p == nullptr)
+		return nullptr;
+
+	if (p->data == value)
+		return p;
+
+	Node* lres = f_find(p->left, value);
+	Node* rres = f_find(p->right, value);
+
+	if (lres != nullptr)
+		return lres;
+
+	if (rres != nullptr)
+		return rres;
+
+	return nullptr;
+}
+
+void f_del0(Node*& p)
+{
+	if (p == nullptr)
+		return;
+
+	if (p->data == 0)
+	{
+		f_del(p);
+		return;
+	}
+
+	f_del0(p->left);
+	f_del0(p->right);
+}
+
+void f_delLeaves(Node*& p)
+{
+	if (p == nullptr)
+		return;
+
+	if ((p->left == nullptr) && (p->right == nullptr))
+	{
+		f_del(p);
+		return;
+	}
+
+	f_delLeaves(p->left);
+	f_delLeaves(p->right);
+}
+
+void f_enlarge(Node*& p, int d)
+{
+	if (p == nullptr)
+		return;
+
+	f_enlarge(p->left, d);
+	f_enlarge(p->right, d);
+
+	if (p->left == nullptr)
+		p->left = new Node(d);
+	if (p->right == nullptr)
+		p->right = new Node(d);
+}
+
+void f_del1(Node*& p, Node*& parent)
+{	
+	if (p == nullptr)
+		return;
+
+	f_del1(p->left, p);
+	f_del1(p->right, p);
+
+	if (p->data == 1)
+	{
+		Node* tmp = p->right;
+
+		f_del(p->left);
+
+		if (parent == p)
+		{
+			delete p;
+			parent = tmp;
+		}
+		else if (parent->left == p)
+		{
+			delete p;
+			parent->left = tmp;
+		}
+		else
+		{
+			delete p;
+			parent->right = tmp;
+		}
+	
+	}
+}
+
+struct Tree
+{
+	Node* root;
+	Tree() : root(nullptr) {}
+	Tree(Node* p) : root(p) {}
+	Tree(int d, Node* l = nullptr, Node* r = nullptr) : root(new Node(d, l, r)) {}						//Tree(int d) : root(new Node(d)) {}
+
+	void print()			//вывод
+	{
+		f_print(root);
+		cout << '\n' << endl;
+	}
+
+	Node* fl_grandchild()			//поиск самого левого внука
+	{
+		Node* tmp;
+
+		if (this->root->left != nullptr)
+			tmp = this->root->left;
+		else
+			return nullptr;
+
+		if (tmp->left != nullptr)
+			return tmp->left;
+		else
+			return tmp->right;
+	}
+
+	void rotateLeft()			//левый поворот в корне
+	{
+		Node* tmp_root;
+
+		if (this->root->right != nullptr)
+		{
+			tmp_root = this->root->right;
+			this->root->right = tmp_root->left;
+			tmp_root->left = this->root;
+			this->root = tmp_root;
+		}
+
+	}
+
+	Node* fl_node()				//поиск самого левого узла
+	{
+		int flag = 1;
+		Node* tmp = this->root;
+
+		while (tmp->left != nullptr)
+			tmp = tmp->left;
+
+		return tmp;
+	}
+
+	Node* fl_leaf()				//поиск самого левого листа
+	{
+		int flag = 1;
+		Node* tmp = this->root;
+
+		while (flag)
+		{
+			if (tmp->left == nullptr)
+			{
+				if (tmp->right == nullptr)
+				{
+					flag = 0;
+					break;
+				}
+				tmp = tmp->right;
+			}
+			else
+				tmp = tmp->left;
+		}
+
+		return tmp;
+	}
+
+	void del_lleaf()				//удаление самого левого листа
+	{
+		int flag = 1;
+		Node* tmp = this->root;
+		Node* tmp_prev = this->root;
+
+		while (flag)
+		{
+			if (tmp->left == nullptr)
+			{
+				if (tmp->right == nullptr)
+				{
+					flag = 0;
+					break;
+				}
+
+				tmp_prev = tmp;
+				tmp = tmp->right;
+			}
+			else
+			{
+				tmp_prev = tmp;
+				tmp = tmp->left;
+			}
+		}
+
+		if (tmp_prev->left == tmp)
+			tmp_prev->left = nullptr;
+		else
+			tmp_prev->right = nullptr;
+
+	}
+
+	int count()				//число узлов дерева
+	{
+		return f_count(root);
+	}
+
+	int sum()				//сумма данных в узлах
+	{
+		return f_sum(root);
+	}
+
+	int count_neg()				//число узлов с отрицательными данными
+	{
+		return f_count_neg(root);
+	}
+
+	int height()				//высота дерева
+	{
+		return f_height(root);
+	}
+
+	void reflect()				//отзеркаливание дерева
+	{
+		f_reflect(root);
+	}
+
+	int mult()				//произведение тех, у кого 2 сына
+	{
+		return f_mult(root);
+	}
+
+	int min()			//минимальное значение
+	{
+		return f_min(root);
+	}
+
+	int eval()
+	{
+		return f_eval(root);
+	}
+
+	Node* find(int value)
+	{
+		return f_find(root, value);
+	}
+	
+	void del0()				//удаление поддеревья узлов с данными 0
+	{
+		f_del0(root);
+	}
+
+	void delLeaves()			//удаление всех листьев
+	{
+		f_delLeaves(root);
+	}
+
+	void enlarge(int d)				//замена пустых указателей на d
+	{
+		f_enlarge(root, d);
+	}
+
+	void del1()				//удаление левого поддерева узла с данными 0
+	{
+		f_del1(root, root);
+	}
+
+	~Tree()
+	{
+		f_del(root);
+	}
+
+};
+
+int main()
+{
+	Node* p_5 = new Node(-5);
+	Node* p_4 = new Node(-4);
+	Node* p_3 = new Node(-3);
+	Node* p_2 = new Node(-2);
+	Node* p_1 = new Node(-1);
+	Node* p7 = new Node(1, p_3, p_2);
+	Node* p6 = new Node(6, p_4, p_5);
+	Node* p5 = new Node(5);
+	Node* p3 = new Node(1, p6, p7);
+	Node* p2 = new Node(2, p_1, p5);
+	Node* p1 = new Node(3, p2, p3);
+
+	Tree t(p1);
+	t.print();
+
+	//t.del0();
+	//t.print();
+
+	//t.delLeaves();
+	//t.print();
+
+	//t.enlarge(5);
+	//t.print();
+
+	t.del1();
+	t.print();
+}
