@@ -1,0 +1,431 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+template<class K, class T>
+struct SNode
+{
+	K key;
+	T data;
+	SNode<K, T>* left;
+	SNode<K, T>* right;
+
+	SNode(K k, T d, SNode<K, T> *l = nullptr, SNode<K, T> *r = nullptr) :key(k), data(d), left(l), right(r) {}
+};
+
+template<class K, class T>
+void f_print(SNode<K, T>* r, int d = 0) // d - смещение
+{
+	if (r == nullptr) 
+		return;
+
+	f_print(r->right, d + 3);
+	
+	for (int i = 0; i < d; i++)
+		cout << ' ';
+	cout << r->key << "(" << r->data << ")" << endl;
+	
+	f_print(r->left, d + 3);
+}
+
+template<class K, class T>
+void f_del(SNode<K, T>*& p)
+{
+	if (p == nullptr)
+		return;
+
+	f_del(p->left);
+	f_del(p->right);
+
+	delete p;
+	p = nullptr;
+
+}
+
+template<class K, class T>
+SNode<K, T>* f_find(SNode<K, T>* p, T k)
+{
+	while (p != nullptr)
+	{
+		if (p->key < k)
+			p = p->right;
+
+		else if (p->key > k)
+			p = p->left;
+
+		else if (p->key == k)
+			return p;
+	}
+
+	return nullptr;
+}
+
+template<class K, class T>
+SNode<K, T>* f_recfind(SNode<K, T>* p, T k)
+{
+	if (p == nullptr)
+		return nullptr;
+
+	if (p->key == k)
+		return p;
+
+	if (p->key < k)
+		return f_recfind(p->right, k);
+
+	if (p->key > k)
+		return f_recfind(p->left, k);
+}
+
+template<class K, class T>
+void f_insert(SNode<K, T>* p, K k, T d)
+{
+	SNode<K, T>* n = new SNode<K, T>(k, d);
+
+	if (p == nullptr)
+	{
+		p = n;
+		return;
+	}
+
+	SNode<K, T>* prev = p;
+	while (p != nullptr)
+	{
+		prev = p;
+		if (p->key < k)
+			p = p->right;
+
+		else if (p->key > k)
+			p = p->left;
+
+		else if (p->key == k)
+			return;
+	}
+
+	if (prev->key < k)
+		prev->right = n;
+	else
+		prev->left = n;
+}
+
+template<class K, class T>
+SNode<K, T>* f_recinsert(SNode<K, T>* p, K k, T d)
+{
+	if (p == nullptr)
+		return new SNode<K, T>(k, d);
+
+	if (p->key < k)
+		p->right = f_recinsert(p->right, k, d);
+	if (p->key > k)
+		p->left = f_recinsert(p->left, k, d);
+	
+	return p;
+}
+
+template<class K, class T>
+void f_kdel(SNode<K, T>* p, K k)
+{
+	SNode<K, T>* prev = p;
+	SNode<K, T>* tmp;
+	while (p != nullptr)
+	{
+		if (p->key == k)
+		{
+			if ((p->left == nullptr) || (p->right == nullptr))
+			{
+				if (p->left == nullptr)
+					tmp = p->right;
+				else
+					tmp = p->left;
+
+				if (prev == p)
+				{
+					delete p;
+					p = nullptr;
+					prev = tmp;
+				}
+				else if (prev->left == p)
+				{
+					delete p;
+					p = nullptr;
+					prev->left = tmp;
+				}
+				else
+				{
+					delete p;
+					p = nullptr;
+					prev->right = tmp;
+				}
+
+			}
+
+			else
+			{
+				SNode<K, T>* prev2 = p;
+				tmp = p->right;
+				while (tmp->left != nullptr)
+				{
+					prev2 = tmp;
+					tmp = tmp->left;
+				}
+				
+				if (prev == p)
+				{
+					p = tmp;
+					prev->key = tmp->key;
+					prev->data = tmp->data;
+				}
+				else if (prev->left == p)
+				{
+					p = tmp;
+					prev->left->key = tmp->key;
+					prev->left->data = tmp->data;
+				}
+				else
+				{
+					p = tmp;
+					prev->right->key = tmp->key;
+					prev->right->data = tmp->data;
+				}
+
+				if ((prev2 == prev->left) || (prev2 == prev->right))
+					prev2->right = p->right;
+				else 
+					prev2->left = p->right;
+
+			}
+
+			return;
+		}
+
+		prev = p;
+
+		if (p->key < k)
+			p = p->right;
+
+		else if (p->key > k)
+			p = p->left;
+	}
+}
+
+template<class K, class T>
+void f_reckdel(SNode<K, T>* prev, SNode<K, T>* p, K k)
+{
+	if (p == nullptr)
+		return;
+
+	if (p->key < k)
+		f_reckdel(p, p->right, k);
+	if (p->key > k)
+		f_reckdel(p, p->left, k);
+
+	if (p->key == k)
+	{
+		SNode<K, T>* tmp;
+		if ((p->left == nullptr) || (p->right == nullptr))
+		{
+			if (p->left == nullptr)
+				tmp = p->right;
+			else
+				tmp = p->left;
+
+			if (prev == p)
+			{
+				delete p;
+				p = nullptr;
+				p = tmp;
+			}
+			else if (prev->left == p)
+			{
+				delete p;
+				p = nullptr;
+				prev->left = tmp;
+			}
+			else
+			{
+				delete p;
+				p = nullptr;
+				prev->right = tmp;
+			}
+
+		}
+
+		else
+		{
+			SNode<K, T>* prev2 = p;
+			tmp = p->right;
+			while (tmp->left != nullptr)
+			{
+				prev2 = tmp;
+				tmp = tmp->left;
+			}
+
+			if (prev == p)
+			{
+				p = tmp;
+				prev->key = tmp->key;
+				prev->data = tmp->data;
+			}
+			else if (prev->left == p)
+			{
+				p = tmp;
+				prev->left->key = tmp->key;
+				prev->left->data = tmp->data;
+			}
+			else
+			{
+				p = tmp;
+				prev->right->key = tmp->key;
+				prev->right->data = tmp->data;
+			}
+
+			if (prev2 == prev->left)
+				prev2->right = p->right;
+			else
+				prev2->left = p->right;
+
+		}
+
+		return;
+	}
+}
+
+template<class K, class T>
+void f_delgrt50(SNode<K, T>*& p)				//удаление узлов с ключами >50				
+{
+	if (p == nullptr)
+		return;
+
+	SNode<K, T>* tmp;
+	
+	while (p->key > 50)
+	{
+		f_del(p->right);
+		tmp = p->left;
+		delete p;
+		p = nullptr;
+		p = tmp;
+	}
+
+	tmp = p;
+	while ((tmp->right != nullptr) && (tmp->key <= 50))
+		tmp = tmp->right;
+
+	f_del(tmp->right);
+	SNode<K, T>* tmp2 = tmp->left;
+	delete tmp;
+	tmp = nullptr;
+	p->right = tmp2;
+}
+
+template<class K, class T>
+bool isBST(SNode<K, T>* p)				//проверка правильносьти ДДП
+{
+	if (p == nullptr)
+		return true;
+
+	if ((p->left != nullptr) && (p->left->key >= p->key))
+		return false;
+
+	if ((p->right != nullptr) && (p->right->key <= p->key))
+		return false;
+
+	return isBST(p->left) && isBST(p->right);
+}
+
+template<class K, class T>
+struct STree
+{
+	SNode<K, T>* root;
+	STree<K, T>(SNode<K, T>* p) : root(p) {}
+	
+	void print()
+	{
+		f_print(root);
+		cout << '\n' << '\n' << '\n';
+	}
+
+	SNode<K, T>* find(T k)				//поиск по значению ключа нерек
+	{
+		return f_find(root, k);
+	}
+
+	SNode<K, T>* recfind(T k)				//поиск по значению ключа рек
+	{
+		return f_recfind(root, k);
+	}
+
+	void insert(K k, T d)				//вставка пары ключ-значение нерек
+	{
+		 f_insert(root, k, d);
+	}
+
+	SNode<K, T>* recinsert(K k, T d)			//вставка пары ключ-значение рек
+	{
+		return f_recinsert(root, k, d);
+	}
+
+	void kdel(K k)				//удаление по значению ключа нерек
+	{
+		f_kdel(root, k);
+	}
+	
+	void reckdel(K k)				//удаление по значению ключа рек
+	{
+		f_reckdel(root, root, k);
+	}
+
+	~STree()
+	{
+		f_del(root);
+	}
+};
+
+int main()
+{
+	SNode<int, int>* p9 = new SNode<int, int>(130, 9);
+	SNode<int, int>* p8 = new SNode<int, int>(70, 8);
+	SNode<int, int>* p7 = new SNode<int, int>(40, 7);
+	SNode<int, int>* p6 = new SNode<int, int>(140, 6, p9);
+	SNode<int, int>* p5 = new SNode<int, int>(60, 5, p7, p8);
+	SNode<int, int>* p4 = new SNode<int, int>(10, 4);
+	SNode<int, int>* p3 = new SNode<int, int>(100, 3, nullptr, p6);
+	SNode<int, int>* p2 = new SNode<int, int>(30, 2, p4, p5);
+	SNode<int, int>* p1 = new SNode<int, int>(80, 1, p2, p3);
+
+	STree<int, int> t(p1);
+	t.print();
+
+	int key_find = 40;
+	SNode<int, int>* res_find = t.find(key_find);
+	SNode<int, int>* red_recfind = t.recfind(key_find);
+
+
+	t.recinsert(79, 14);
+	t.recinsert(96, 15);
+	t.recinsert(94, 16);
+	t.recinsert(97, 17);
+	t.recinsert(125, 18);
+	t.recinsert(135, 19);
+	t.recinsert(133, 20);
+	t.recinsert(138, 21);
+	t.recinsert(131, 22);
+	t.recinsert(132, 20);
+	t.recinsert(95, 23);
+	t.print();
+
+	//t.kdel(70);
+	//t.print();
+	t.kdel(80);
+	t.print();
+	t.reckdel(130);
+	t.print();
+	//t.reckdel(60);
+	//t.print();
+
+	f_delgrt50(t.root);
+	t.print();
+
+	cout << isBST(t.root) << '\n';
+
+	return EXIT_SUCCESS;
+}
