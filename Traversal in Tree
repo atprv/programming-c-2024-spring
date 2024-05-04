@@ -148,6 +148,36 @@ Node* f_find(Node* p, T value)
 	return nullptr;
 }
 
+Node* copy(Node* p)				//ф-ия строящая копию дерева
+{
+	if (p == nullptr)
+		return nullptr;
+
+	Node* new_p = new Node(p->data);
+	new_p->left = copy(p->left);
+	new_p->right = copy(p->right);
+
+	return new_p;
+}
+
+int f_alt_sum(Node* p)
+{
+	if (p == nullptr)
+		return 0;
+
+	int sum = 0;
+
+	sum += f_alt_sum(p->left);
+	sum -= f_alt_sum(p->right);
+
+	if (p->left != nullptr)
+		sum += p->left->data;
+	if (p->right != nullptr)
+		sum -= p->right->data;
+
+	return sum;
+}
+
 template<typename T>
 struct Tree
 {
@@ -155,6 +185,7 @@ struct Tree
 	Tree() : root(nullptr) {}
 	Tree(Node* p) : root(p) {}
 	Tree(int d, Node* l = nullptr, Node* r = nullptr) : root(new Node(d, l, r)) {}						//Tree(int d) : root(new Node(d)) {}
+	Tree(const Tree<T>& p) { root = copy(p.root); }				//конструктор копирования
 
 	void print()			//вывод
 	{
@@ -303,44 +334,30 @@ struct Tree
 	{
 		return f_find(root, value);
 	}
-		
+
+	int alt_sum()			//левые с плюсом, правые с минусом
+	{
+		return f_alt_sum(root);
+	}
 };
 
 int main()
 {
-	Node* p_2 = new Node(-2);
-	Node* p_1 = new Node(5);
-	Node* p77 = new Node(1);
-	Node* p7 = new Node(45, p77, p_2);
+	//Node* p_2 = new Node(-2);
+	Node* p_1 = new Node(-1);
+	//Node* p77 = new Node(77);
+	Node* p7 = new Node(7);
 	Node* p6 = new Node(6);
-	Node* p5 = new Node(-1);
-	Node* p3 = new Node(43, p6, p7);
-	Node* p2 = new Node(47, p_1, p5);
-	Node* p1 = new Node(42, p2, p3);
+	Node* p5 = new Node(5);
+	Node* p3 = new Node(3, p6, p7);
+	Node* p2 = new Node(2, p_1, p5);
+	Node* p1 = new Node(1, p2, p3);
 
-	// (5 / -1) * (6 + (1 - -2)) = -45
 	Tree<int> t(p1);
 	t.print();
 
-	cout << t.eval() << '\n';
+	//Tree<int> new_t(t);
+	//new_t.print();
 
-	int value = 54;
-	Node* res_find = t.find(value);
-
-	/*cout << "The sum of the data in nodes is " << t.sum() << "." << endl;
-	cout << "Number of nodes with negative data is " << t.count_neg() << "." << endl;
-	cout << "The mult if parent has 2 sons is " << t.mult() << "." << endl;
-
-	t.del_lleaf();
-	t.print();
-	cout << "The sum of the data in nodes is " << t.sum() << "." << endl;
-	cout << "Number of nodes with negative data is " << t.count_neg() << "." << endl;
-
-	cout << "\nThe tree height is " << t.height() << "." << endl;
-
-	t.reflect();
-	t.print();
-
-	cout << "The mult if parent has 2 sons is " << t.mult() << "." << endl;
-	cout << "The min data is " << t.min() << "." << endl;*/
+	cout << t.alt_sum();
 }
